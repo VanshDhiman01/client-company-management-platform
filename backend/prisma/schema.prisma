@@ -1,0 +1,173 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  CLIENT
+  ADMIN
+  DEVELOPER
+}
+
+enum ProjectRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  NEEDS_CHANGES
+  COMPLETED
+}
+
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model User {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  password    String   @default("password123")
+  role        UserRole @default(CLIENT)
+  avatar      String?
+  phone       String?
+  companyName String?
+  title       String?
+  status      String   @default("Active")
+  joinedDate  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProjectRequest {
+  id                 String               @id @default(uuid())
+  clientId           String
+  clientName         String
+  clientEmail        String
+  companyName        String
+  projectName        String
+  description        String
+  requirements       String               @default("[]")
+  expectedDeadline   String
+  budget             String?
+  status             ProjectRequestStatus @default(PENDING)
+  submittedDate      DateTime             @default(now())
+  reviewedDate       DateTime?
+  adminNotes         String?
+  convertedProjectId String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+}
+
+model Project {
+  id                 String        @id @default(uuid())
+  requestId          String?
+  clientId           String
+  clientName         String
+  clientEmail        String
+  companyName        String
+  name               String
+  description        String
+  status             ProjectStatus @default(PLANNING)
+  startDate          String
+  expectedDelivery   String
+  completedDate      String?
+  budget             String?
+  overallProgress    Int           @default(0)
+  latestUpdate       String?
+  assignedTeamCount  Int           @default(0)
+  clientVisibleNotes String?
+  internalNotes      String?
+  category           String        @default("Web Application")
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
+model Task {
+  id                    String           @id @default(uuid())
+  projectId             String
+  projectName           String
+  title                 String
+  description           String
+  assignedDeveloperId   String?
+  assignedDeveloperName String?
+  dueDate               String
+  priority              Priority         @default(MEDIUM)
+  progress              Int              @default(0)
+  status                TaskStatus       @default(PENDING)
+  reviewStatus          String           @default("None")
+  internalReviewNotes   String?
+  createdDate           DateTime         @default(now())
+  completedDate         String?
+  workUpdates           TaskWorkUpdate[]
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+}
+
+model TaskWorkUpdate {
+  id             String   @id @default(uuid())
+  taskId         String
+  task           Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  developerId    String
+  developerName  String
+  timestamp      DateTime @default(now())
+  progressAtTime Int      @default(0)
+  message        String
+  fileName       String?
+}
+
+
+model Conversation {
+  id                String    @id @default(uuid())
+  clientId          String
+  adminId           String
+  clientName        String
+  companyName       String
+  clientAvatar      String?
+  projectId         String?
+  projectName       String?
+  lastMessage       String?
+  lastMessageTime   DateTime  @default(now())
+  unreadCountClient Int       @default(0)
+  unreadCountAdmin  Int       @default(0)
+  messages          Message[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([clientId, adminId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  senderName     String
+  senderRole     String
+  text           String
+  attachmentUrl  String?
+  attachmentName String?
+  attachmentType String?
+  attachmentSize String?
+  timestamp      DateTime     @default(now())
+}
+

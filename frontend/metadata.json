@@ -1,0 +1,6 @@
+{
+  "name": "Client-Company Management Platform",
+  "description": "Professional SaaS lifecycle platform connecting clients, project managers, and developers across project requests, task tracking, ticket support, files, and messaging.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
